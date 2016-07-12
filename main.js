@@ -31,14 +31,14 @@ module.exports.loop = function () {
     }
     var minreqs = {
         'harvester': 4,
-        'upgrader': 0,
-        'builder': 0
+        'upgrader': 2,
+        'builder': 4
     }
 
     for(let key in minreqs) {
         var nums = _.sum(Game.creeps, (c) => c.memory.role == key);
         if(nums < minreqs[key]) {
-            Game.spawns.NorthGreenwich.createCreep([WORK, CARRY, MOVE], undefined, {role: key})
+            Game.spawns.NorthGreenwich.createCreep([WORK, WORK, CARRY, MOVE], undefined, {role: key})
         }
     }
 }
