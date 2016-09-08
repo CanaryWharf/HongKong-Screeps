@@ -1,1 +1,1 @@
-# Scripts for my screeps
+Scripts for my screeps game.
