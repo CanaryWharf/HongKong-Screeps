@@ -1,34 +1,33 @@
-var roleBuilder = {
+const { moveJob, getConstructionSite } = require('helpers.creeps');
+
+
+const roleBuilder = {
 
     /** @param {Creep} creep **/
     run: function(creep) {
 
-        if(creep.memory.building && creep.carry.energy == 0) {
+	    if(creep.memory.building && creep.store[RESOURCE_ENERGY] == 0) {
             creep.memory.building = false;
-        }
-        if(!creep.memory.building && creep.carry.energy == creep.carryCapacity) {
-            creep.memory.building = true;
-        }
+            creep.say('🔄 resupply');
+	    }
+	    if(!creep.memory.building && creep.store.getFreeCapacity() == 0) {
+	        creep.memory.building = true;
+	        creep.say('🚧 build');
+	    }
 
-        if(creep.memory.building) {
-            var targets = creep.room.find(FIND_CONSTRUCTION_SITES);
+		const spawn = Game.getObjectById(creep.memory.spawn_id);
+	    if(creep.memory.building) {
+			const targets = spawn.memory.construction_info;
             if(targets.length) {
-                if(creep.build(targets[0]) == ERR_NOT_IN_RANGE) {
-                    creep.moveTo(targets[0]);
-                }
-            } else {
-                if(creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
-                    creep.moveTo(creep.room.controller);
+				let jobPos = targets[0].jobs[0];
+				let target = getConstructionSite(spawn.room, jobPos.x, jobPos.y)
+				moveJob(creep, () => creep.build(target), target)
             }
-            }
-        }
-        else {
-            var sources = creep.room.find(FIND_SOURCES);
-            if(creep.harvest(sources[0]) == ERR_NOT_IN_RANGE) {
-                creep.moveTo(sources[0]);
-            }
-        }
-    }
+	    }
+	    else {
+            moveJob(creep, () => creep.withdraw(spawn, RESOURCE_ENERGY), spawn);
+	    }
+	}
 };
 
 module.exports = roleBuilder;

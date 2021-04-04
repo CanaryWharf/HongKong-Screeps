@@ -1,28 +1,27 @@
+const { moveJob } = require('helpers.creeps');
+
 var roleUpgrader = {
 
-    /*u @param {Creep} creep **/
+    /** @param {Creep} creep **/
     run: function(creep) {
 
-        if(creep.memory.upgrading && creep.carry.energy == 0) {
+	    if(!creep.memory.upgrading && creep.store.getFreeCapacity() == 0) {
+	        creep.memory.upgrading = true;
+	        creep.say('⚡ upgrade');
+	    } else if (creep.memory.upgrading && creep.store.getUsedCapacity() == 0) {
             creep.memory.upgrading = false;
-        }
-        if(!creep.memory.upgrading && creep.carry.energy == creep.carryCapacity) {
-            creep.memory.upgrading = true;
-        }
+            creep.say('🔄 resupply');
+	    }
 
-        if(creep.memory.upgrading) {
-            if(creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
-                creep.moveTo(creep.room.controller);
-            }
+	    if(creep.memory.upgrading) {
+            const controller = Game.getObjectById(creep.memory.controller_id);
+            moveJob(creep, () => creep.upgradeController(controller), controller)
         }
         else {
-            var sources = creep.room.find(FIND_SOURCES);
-            if(creep.harvest(sources[0]) == ERR_NOT_IN_RANGE) {
-                creep.moveTo(sources[0]);
-            }
+            const storage = Game.getObjectById(creep.memory.storage_id)
+            moveJob(creep, () => creep.withdraw(storage, RESOURCE_ENERGY), storage);
         }
-    }
+	}
 };
-
 
 module.exports = roleUpgrader;

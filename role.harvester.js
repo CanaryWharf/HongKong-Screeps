@@ -1,34 +1,40 @@
+const { moveJob } = require('helpers.creeps');
+
 var roleHarvester = {
+
+    assignHarvester(creep) {
+        var mines = creep.room.memory;
+    },
 
     /** @param {Creep} creep **/
     run: function(creep) {
-        if(creep.carry.energy < creep.carryCapacity) {
-            var sources = creep.room.find(FIND_SOURCES);
-            if(creep.harvest(sources[0]) == ERR_NOT_IN_RANGE) {
-                creep.moveTo(sources[0]);
-            }
+        if (!creep.memory.role || ! creep.memory.source_id) {
+            return;
+        }
+	    if(creep.store.getFreeCapacity() > 0) {
+            let source = Game.getObjectById(creep.memory.source_id)
+            moveJob(creep, () => creep.harvest(source), source);
         }
         else {
             var targets = creep.room.find(FIND_STRUCTURES, {
                     filter: (structure) => {
                         return (structure.structureType == STRUCTURE_EXTENSION ||
                                 structure.structureType == STRUCTURE_SPAWN ||
-                                structure.structureType == STRUCTURE_TOWER) && structure.energy < structure.energyCapacity;
+                                structure.structureType == STRUCTURE_TOWER) && 
+                                structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
                     }
             });
             if(targets.length > 0) {
-                if(creep.transfer(targets[0], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                    creep.moveTo(targets[0]);
-                }
+                moveJob(
+                    creep,
+                    () => creep.transfer(targets[0], RESOURCE_ENERGY),
+                    targets[0],
+                )
             } else {
-                if(creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
-                    creep.moveTo(creep.room.controller);
-                }
+                moveJob(creep, () => creep.upgradeController(creep.room.controller), creep.room.controller)
             }
         }
-    }
+	}
 };
-
-
 
 module.exports = roleHarvester;
